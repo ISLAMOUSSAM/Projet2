@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Géométrie dans l'Espace</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Outfit:wght@200;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --border: #1e2d45;
+    --text: #dde4f0;
+    --muted: #6b7fa3;
+    --emerald: #2dd4a0;
+    --amber: #f5a623;
+    --rose: #f06a6a;
+    --sky: #5bb8f5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 200;
+    overflow-x: hidden;
+  }
+
+  /* STARS BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 40%, rgba(255,255,255,0.1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 90px 40px 70px;
+    background: linear-gradient(180deg, #0d1528 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .chip {
+    display: inline-block;
+    border: 1px solid var(--emerald);
+    color: var(--emerald);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    margin-bottom: 18px;
+    letter-spacing: -1px;
+  }
+  header h1 span { color: var(--emerald); font-style: italic; }
+  header p {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* FLOATING SHAPES in header */
+  .shape {
+    position: absolute;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+  .shape-1 { top: 20px; left: 5%; width: 180px; }
+  .shape-2 { bottom: 10px; right: 8%; width: 140px; }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 30px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-weight: 400;
+  }
+  nav a:hover { color: var(--emerald); background: rgba(45,212,160,0.08); }
+
+  /* MAIN */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 70px 24px;
+    display: grid;
+    gap: 40px;
+  }
+
+  /* SECTION CARD */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease, box-shadow 0.3s;
+  }
+  .section-card:hover {
+    box-shadow: 0 0 40px rgba(45,212,160,0.07);
+  }
+  .section-card.visible { opacity: 1; transform: translateY(0); }
+  .section-card:nth-child(even) { grid-template-columns: 340px 1fr; }
+  .section-card:nth-child(even) .card-visual { order: -1; }
+
+  /* TEXT */
+  .card-text {
+    padding: 44px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .prop-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .prop-range {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(45,212,160,0.1);
+    color: var(--emerald);
+    border: 1px solid rgba(45,212,160,0.25);
+    padding: 3px 12px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+  .prop-category {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 400;
+  }
+  .card-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 300;
+    color: #eef2ff;
+    margin-bottom: 16px;
+    line-height: 1.25;
+  }
+  .card-text p {
+    font-size: 0.92rem;
+    line-height: 1.8;
+    color: #9baac8;
+    margin-bottom: 10px;
+  }
+  .card-text p strong { color: var(--text); font-weight: 500; }
+
+  .formula-box {
+    margin-top: 14px;
+    background: rgba(91,184,245,0.06);
+    border: 1px solid rgba(91,184,245,0.2);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    color: var(--sky);
+    font-style: italic;
+  }
+
+  /* VISUAL */
+  .card-visual {
+    background: linear-gradient(135deg, #0d1528 0%, #111e35 100%);
+    border-left: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    min-height: 300px;
+  }
+  .section-card:nth-child(even) .card-visual {
+    border-left: none;
+    border-right: 1px solid var(--border);
+  }
+  .card-visual svg {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(45,212,160,0.1));
+  }
+
+  /* SVG Animations */
+  @keyframes drawLine {
+    from { stroke-dashoffset: 600; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow {
+    0%,100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .draw { stroke-dasharray: 600; animation: drawLine 2s ease forwards; }
+  .fade { animation: fadeUp 1s ease 0.5s both; }
+  .glow { animation: glow 2.5s ease-in-out infinite; }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 50px 30px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  @media(max-width: 760px) {
+    .section-card, .section-card:nth-child(even) {
+      grid-template-columns: 1fr;
+    }
+    .section-card:nth-child(even) .card-visual { order: 0; }
+    .card-visual { border-left: none !important; border-right: none !important; border-top: 1px solid var(--border); min-height: 240px; }
+    .card-text { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Decorative SVG shapes in header -->
+<header>
+  <svg class="shape shape-1" viewBox="0 0 200 200" fill="none">
+    <polygon points="100,10 190,55 190,145 100,190 10,145 10,55" stroke="white" stroke-width="1"/>
+    <polygon points="100,30 170,65 170,135 100,170 30,135 30,65" stroke="white" stroke-width="0.5"/>
+  </svg>
+  <svg class="shape shape-2" viewBox="0 0 200 200" fill="none">
+    <rect x="20" y="20" width="160" height="160" stroke="white" stroke-width="1" transform="rotate(15 100 100)"/>
+    <rect x="40" y="40" width="120" height="120" stroke="white" stroke-width="0.5" transform="rotate(30 100 100)"/>
+  </svg>
+
+  <div class="chip">Géométrie dans l'Espace</div>
+  <h1>Droites, Plans &amp;<br><span>Solides</span> en 3D</h1>
+  <p>7 groupes de propositions fondamentales pour maîtriser la géométrie spatiale, avec illustrations visuelles.</p>
+</header>
+
+<nav>
+  <a href="#s1">I–III Coplanarité</a>
+  <a href="#s2">IV–VI Perpendicularité</a>
+  <a href="#s3">VII–X Parallèles</a>
+  <a href="#s4">XI–XIII Perpendiculaires</a>
+  <a href="#s5">XIV–XVII Plans ∥</a>
+  <a href="#s6">XVIII–XX Dièdres</a>
+  <a href="#s7">XXI–XXIV Solides</a>
+</nav>
+
+<main>
+
+  <!-- I–III -->
+  <div class="section-card" id="s1">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. I–III</span>
+        <span class="prop-category">Fondements</span>
+      </div>
+      <h2>Droites &amp; Plans — Coplanarité</h2>
+      <p>Les premières propositions établissent les bases : <strong>trois points non alignés</strong> déterminent un plan unique. Deux droites qui se coupent ou deux droites parallèles définissent également un plan unique.</p>
+      <p>L'intersection de deux plans distincts est toujours une <strong>droite</strong> (jamais un point isolé). Si un plan contient deux points d'une droite, il contient la droite entière.</p>
+      <div class="formula-box">3 points non alignés ⟹ 1 plan unique</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Plan 1 (parallélogramme incliné) -->
+        <polygon points="30,160 150,120 250,140 130,180" stroke="#2dd4a0" stroke-width="1.2" fill="rgba(45,212,160,0.04)" class="draw"/>
+        <!-- Plan 2 (coupant le premier) -->
+        <polygon points="100,60 220,40 220,180 100,200" stroke="#5bb8f5" stroke-width="1.2" fill="rgba(91,184,245,0.04)" class="draw"/>
+        <!-- Ligne d'intersection -->
+        <line x1="100" y1="130" x2="220" y2="140" stroke="#f5a623" stroke-width="2" stroke-dasharray="5 3" class="glow"/>
+        <!-- 3 points -->
+        <circle cx="60" cy="155" r="4" fill="#2dd4a0"/>
+        <circle cx="180" cy="125" r="4" fill="#2dd4a0"/>
+        <circle cx="160" cy="50" r="4" fill="#5bb8f5"/>
+        <!-- Labels -->
+        <text x="48" y="148" fill="#2dd4a0" font-size="11" font-family="Cormorant Garamond,serif">A</text>
+        <text x="183" y="119" fill="#2dd4a0" font-size="11" font-family="Cormorant Garamond,serif">B</text>
+        <text x="163" y="45" fill="#5bb8f5" font-size="11" font-family="Cormorant Garamond,serif">C</text>
+        <text x="120" y="128" fill="#f5a623" font-size="10" font-family="Outfit,sans-serif">intersection</text>
+        <!-- Labels plans -->
+        <text x="34" y="175" fill="rgba(45,212,160,0.7)" font-size="10">Plan α</text>
+        <text x="224" y="110" fill="rgba(91,184,245,0.7)" font-size="10">Plan β</text>
+        <text x="50" y="220" fill="rgba(245,166,35,0.8)" font-size="9">α ∩ β = droite d</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- IV–VI -->
+  <div class="section-card" id="s2">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. IV–VI</span>
+        <span class="prop-category">Perpendicularité</span>
+      </div>
+      <h2>Droite ⊥ Plan et Parallélisme induit</h2>
+      <p>Une droite est <strong>perpendiculaire à un plan</strong> si elle est perpendiculaire à toutes les droites du plan passant par son pied. Il suffit en pratique qu'elle soit ⊥ à <strong>deux droites sécantes</strong> du plan.</p>
+      <p>Conséquence : si une droite est ⊥ à un plan, elle est aussi ⊥ à tout plan <strong>parallèle</strong> au premier. Deux droites chacune ⊥ à un même plan sont parallèles entre elles.</p>
+      <div class="formula-box">d ⊥ P ⟺ d ⊥ à deux droites sécantes de P</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Plan horizontal -->
+        <polygon points="20,170 140,140 260,160 140,190" stroke="#2dd4a0" stroke-width="1.2" fill="rgba(45,212,160,0.05)" class="draw"/>
+        <!-- Droite verticale perpendiculaire -->
+        <line x1="140" y1="165" x2="140" y2="40" stroke="white" stroke-width="2" class="draw"/>
+        <!-- Petits carrés angle droit -->
+        <rect x="140" y="155" width="10" height="10" stroke="#f5a623" stroke-width="1" fill="none"/>
+        <!-- Deux droites dans le plan -->
+        <line x1="60" y1="175" x2="220" y2="155" stroke="rgba(91,184,245,0.6)" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <line x1="100" y1="140" x2="180" y2="185" stroke="rgba(91,184,245,0.6)" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <!-- Symboles ⊥ -->
+        <text x="225" y="152" fill="#5bb8f5" font-size="10">d₁</text>
+        <text x="182" y="188" fill="#5bb8f5" font-size="10">d₂</text>
+        <!-- Pied -->
+        <circle cx="140" cy="165" r="3.5" fill="#f5a623"/>
+        <!-- Sommet -->
+        <circle cx="140" cy="40" r="3.5" fill="white" class="glow"/>
+        <!-- Labels -->
+        <text x="145" y="38" fill="white" font-size="11" font-family="Cormorant Garamond,serif">D</text>
+        <text x="145" y="170" fill="#f5a623" font-size="10">H (pied)</text>
+        <text x="24" y="188" fill="rgba(45,212,160,0.7)" font-size="10">Plan P</text>
+        <text x="80" y="100" fill="rgba(255,255,255,0.5)" font-size="10">DH ⊥ P</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- VII–X -->
+  <div class="section-card" id="s3">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. VII–X</span>
+        <span class="prop-category">Parallélisme spatial</span>
+      </div>
+      <h2>Droites Gauches &amp; Plans Parallèles</h2>
+      <p>Dans l'espace, deux droites peuvent être <strong>coplanaires</strong> (parallèles ou sécantes) ou <strong>gauches</strong> (ni parallèles, ni sécantes — elles n'ont aucun plan commun). C'est une notion spécifiquement 3D.</p>
+      <p>Deux plans sont parallèles s'ils n'ont aucun point commun. Deux plans chacun ⊥ à une même droite sont <strong>parallèles</strong>. Si deux droites parallèles sont dans un plan, toute parallèle à l'une est dans le même plan ou dans un plan parallèle.</p>
+      <div class="formula-box">Droites gauches : d₁ et d₂ non coplanaires</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Plan bas -->
+        <polygon points="15,185 130,155 265,175 150,205" stroke="#2dd4a0" stroke-width="1.2" fill="rgba(45,212,160,0.04)" class="draw"/>
+        <!-- Plan haut -->
+        <polygon points="15,90 130,60 265,80 150,110" stroke="#5bb8f5" stroke-width="1.2" fill="rgba(91,184,245,0.04)" class="draw"/>
+        <!-- Droite 1 (dans plan bas) -->
+        <line x1="40" y1="190" x2="200" y2="170" stroke="white" stroke-width="1.8" class="draw"/>
+        <!-- Droite 2 (dans plan haut, gauche à d1) -->
+        <line x1="80" y1="65" x2="240" y2="95" stroke="#f06a6a" stroke-width="1.8" class="draw"/>
+        <!-- Indicateur de non-intersection -->
+        <circle cx="140" cy="130" r="16" stroke="#f5a623" stroke-width="1" stroke-dasharray="3 3" fill="none" class="glow"/>
+        <text x="134" y="134" fill="#f5a623" font-size="12">∅</text>
+        <!-- Labels -->
+        <text x="42" y="186" fill="rgba(255,255,255,0.7)" font-size="10">d₁</text>
+        <text x="80" y="60" fill="#f06a6a" font-size="10">d₂</text>
+        <text x="18" y="104" fill="rgba(91,184,245,0.7)" font-size="10">Plan β ∥ α</text>
+        <text x="18" y="200" fill="rgba(45,212,160,0.7)" font-size="10">Plan α</text>
+        <text x="60" y="145" fill="rgba(245,166,35,0.8)" font-size="9">droites gauches</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- XI–XIII -->
+  <div class="section-card" id="s4">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. XI–XIII</span>
+        <span class="prop-category">Construction</span>
+      </div>
+      <h2>Construire des perpendiculaires depuis un point</h2>
+      <p>Depuis un point A <strong>extérieur</strong> à un plan P, il existe une unique perpendiculaire à P passant par A. Le pied H de cette perpendiculaire est le <strong>projeté orthogonal</strong> de A sur P.</p>
+      <p>La distance de A au plan est AH. Pour un point sur le plan, la perpendiculaire est construite à l'aide de la règle et du compas dans le plan, puis élevée orthogonalement. Le théorème des trois perpendiculaires joue un rôle clé.</p>
+      <div class="formula-box">AH = min{AD : D ∈ P} — distance de A au plan</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Plan -->
+        <polygon points="20,180 130,150 260,170 150,200" stroke="#2dd4a0" stroke-width="1.2" fill="rgba(45,212,160,0.05)" class="draw"/>
+        <!-- Point A en haut -->
+        <circle cx="100" cy="55" r="5" fill="white" class="glow"/>
+        <text x="90" y="49" fill="white" font-size="12" font-family="Cormorant Garamond,serif">A</text>
+        <!-- Perpendiculaire AH -->
+        <line x1="100" y1="55" x2="100" y2="173" stroke="white" stroke-width="2" class="draw"/>
+        <!-- Carré angle droit -->
+        <rect x="100" y="163" width="10" height="10" stroke="#f5a623" stroke-width="1" fill="none"/>
+        <!-- Pied H -->
+        <circle cx="100" cy="173" r="4" fill="#f5a623"/>
+        <text x="108" y="178" fill="#f5a623" font-size="11" font-family="Cormorant Garamond,serif">H</text>
+        <!-- Rayon dans le plan (oblique) -->
+        <line x1="100" y1="173" x2="210" y2="162" stroke="rgba(91,184,245,0.5)" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <circle cx="210" cy="162" r="3" fill="#5bb8f5"/>
+        <text x="213" y="160" fill="#5bb8f5" font-size="10">D</text>
+        <!-- AH et AD labels -->
+        <text x="70" y="115" fill="rgba(255,255,255,0.7)" font-size="10">AH</text>
+        <text x="155" y="108" fill="rgba(91,184,245,0.6)" font-size="10">AD &gt; AH</text>
+        <!-- Flèche entre A et D (oblique) -->
+        <line x1="100" y1="55" x2="210" y2="162" stroke="rgba(91,184,245,0.3)" stroke-width="1" stroke-dasharray="2 4"/>
+        <text x="20" y="198" fill="rgba(45,212,160,0.7)" font-size="10">Plan P</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- XIV–XVII -->
+  <div class="section-card" id="s5">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. XIV–XVII</span>
+        <span class="prop-category">Sections</span>
+      </div>
+      <h2>Plans Parallèles &amp; Sections par un Plan</h2>
+      <p>Si deux plans parallèles sont coupés par un troisième plan, les <strong>droites d'intersection</strong> obtenues sont parallèles. C'est le principe des sections planes dans les solides.</p>
+      <p>Dans un prisme ou une pyramide, une section parallèle à la base produit une figure <strong>semblable</strong> à la base, avec un rapport de similitude lié à la distance à l'apex. Les droites parallèles coupées par des plans parallèles définissent des rapports égaux.</p>
+      <div class="formula-box">P₁ ∥ P₂ et P₃ sécant ⟹ (P₁∩P₃) ∥ (P₂∩P₃)</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Pyramide -->
+        <line x1="140" y1="25" x2="50" y2="200" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" class="draw"/>
+        <line x1="140" y1="25" x2="230" y2="200" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" class="draw"/>
+        <line x1="140" y1="25" x2="140" y2="200" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="3 3"/>
+        <!-- Base -->
+        <ellipse cx="140" cy="200" rx="90" ry="18" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" fill="none"/>
+        <!-- Section parallèle à mi-hauteur -->
+        <ellipse cx="140" cy="115" rx="52" ry="10" stroke="#f5a623" stroke-width="2" fill="rgba(245,166,35,0.06)" class="glow"/>
+        <!-- Section plus haut -->
+        <ellipse cx="140" cy="70" rx="26" ry="5" stroke="#f06a6a" stroke-width="1.5" fill="rgba(240,106,106,0.05)" class="glow"/>
+        <!-- Sommet -->
+        <circle cx="140" cy="25" r="4" fill="white"/>
+        <text x="145" y="23" fill="white" font-size="11" font-family="Cormorant Garamond,serif">S</text>
+        <!-- Labels sections -->
+        <text x="196" y="118" fill="#f5a623" font-size="10">section 1</text>
+        <text x="169" y="72" fill="#f06a6a" font-size="10">section 2</text>
+        <text x="60" y="230" fill="rgba(255,255,255,0.4)" font-size="10">Base (plan de référence)</text>
+        <!-- Similitude -->
+        <text x="30" y="140" fill="rgba(245,166,35,0.7)" font-size="9">sections ∥ à</text>
+        <text x="30" y="150" fill="rgba(245,166,35,0.7)" font-size="9">la base</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- XVIII–XX -->
+  <div class="section-card" id="s6">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. XVIII–XX</span>
+        <span class="prop-category">Angles solides</span>
+      </div>
+      <h2>Angles Dièdres, Trièdres &amp; Inégalités</h2>
+      <p>Un <strong>angle dièdre</strong> est l'angle formé par deux demi-plans ayant la même arête. Il se mesure par l'angle entre deux demi-droites perpendiculaires à l'arête, une dans chaque face.</p>
+      <p>Un <strong>trièdre</strong> est formé par trois demi-plans issus d'un même sommet. La somme des angles des faces d'un trièdre est <strong>inférieure à 360°</strong> (inégalité fondamentale), et chaque angle de face est inférieur à la somme des deux autres.</p>
+      <div class="formula-box">Trièdre : α + β + γ &lt; 360° (inégalité des angles)</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Dièdre : deux plans partageant une arête -->
+        <!-- Arête verticale -->
+        <line x1="140" y1="30" x2="140" y2="190" stroke="#2dd4a0" stroke-width="2" class="draw"/>
+        <!-- Face gauche -->
+        <polygon points="140,110 30,60 30,190 140,190" stroke="#5bb8f5" stroke-width="1.2" fill="rgba(91,184,245,0.05)" class="draw"/>
+        <!-- Face droite -->
+        <polygon points="140,110 250,60 250,190 140,190" stroke="#f06a6a" stroke-width="1.2" fill="rgba(240,106,106,0.05)" class="draw"/>
+        <!-- Angle dièdre (arc) -->
+        <path d="M 80,130 A 65 65 0 0 1 200,130" stroke="#f5a623" stroke-width="1.5" fill="none" stroke-dasharray="4 3" class="glow"/>
+        <!-- Trièdre au sommet -->
+        <line x1="140" y1="30" x2="60" y2="90" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="140" y1="30" x2="220" y2="90" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="3 3"/>
+        <!-- Labels -->
+        <text x="125" y="26" fill="#2dd4a0" font-size="10">arête</text>
+        <text x="35" y="78" fill="#5bb8f5" font-size="10">face α</text>
+        <text x="222" y="78" fill="#f06a6a" font-size="10">face β</text>
+        <text x="115" y="148" fill="#f5a623" font-size="12" font-family="Cormorant Garamond,serif">θ</text>
+        <text x="40" y="215" fill="rgba(245,166,35,0.7)" font-size="9">angle dièdre θ = angle entre les faces</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- XXI–XXIV -->
+  <div class="section-card" id="s7">
+    <div class="card-text">
+      <div class="prop-header">
+        <span class="prop-range">Prop. XXI–XXIV</span>
+        <span class="prop-category">Similitude 3D</span>
+      </div>
+      <h2>Solides Semblables &amp; Angles Solides</h2>
+      <p>Deux solides sont <strong>semblables</strong> si l'un est l'image de l'autre par une homothétie (changement d'échelle uniforme). Leurs angles sont conservés, et les longueurs, surfaces et volumes sont dans des rapports respectifs de k, k² et k³.</p>
+      <p>Un <strong>angle solide</strong> est la portion d'espace délimitée par des plans passant par un point commun (le sommet). L'angle solide d'une sphère entière vaut 4π stéradians — analogue 3D de l'angle plein 2π en 2D.</p>
+      <div class="formula-box">Similitude k : Volumes en rapport k³, Aires en k²</div>
+    </div>
+    <div class="card-visual">
+      <svg viewBox="0 0 280 240" fill="none">
+        <!-- Grand cube (fil de fer) -->
+        <!-- Face avant -->
+        <rect x="40" y="80" width="100" height="100" stroke="#2dd4a0" stroke-width="1.5" fill="rgba(45,212,160,0.04)" class="draw"/>
+        <!-- Profondeur -->
+        <line x1="40" y1="80" x2="80" y2="45" stroke="#2dd4a0" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="140" y1="80" x2="180" y2="45" stroke="#2dd4a0" stroke-width="1.2"/>
+        <line x1="140" y1="180" x2="180" y2="145" stroke="#2dd4a0" stroke-width="1.2"/>
+        <line x1="80" y1="45" x2="180" y2="45" stroke="#2dd4a0" stroke-width="1.2"/>
+        <line x1="180" y1="45" x2="180" y2="145" stroke="#2dd4a0" stroke-width="1.2"/>
+
+        <!-- Petit cube (semblable, k=0.45) -->
+        <rect x="175" y="155" width="55" height="55" stroke="#f5a623" stroke-width="1.5" fill="rgba(245,166,35,0.04)" class="draw"/>
+        <line x1="175" y1="155" x2="198" y2="133" stroke="#f5a623" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="230" y1="155" x2="253" y2="133" stroke="#f5a623" stroke-width="1"/>
+        <line x1="230" y1="210" x2="253" y2="188" stroke="#f5a623" stroke-width="1"/>
+        <line x1="198" y1="133" x2="253" y2="133" stroke="#f5a623" stroke-width="1"/>
+        <line x1="253" y1="133" x2="253" y2="188" stroke="#f5a623" stroke-width="1"/>
+
+        <!-- Flèche similitude -->
+        <line x1="148" y1="168" x2="172" y2="168" stroke="white" stroke-width="1" marker-end="url(#arr)"/>
+        <text x="148" y="163" fill="rgba(255,255,255,0.6)" font-size="9">k ≈ 0.5</text>
+
+        <!-- Labels -->
+        <text x="40" y="196" fill="rgba(45,212,160,0.7)" font-size="10">Grand solide</text>
+        <text x="176" y="230" fill="rgba(245,166,35,0.7)" font-size="9">Semblable</text>
+
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="white"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Géométrie dans l'Espace · Propositions I–XXIV · Niveau Prépa / Lycée
+</footer>
+
+<script>
+  const cards = document.querySelectorAll('.section-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  cards.forEach(c => observer.observe(c));
+</script>
+</body>
+</html>
